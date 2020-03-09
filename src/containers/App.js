@@ -2,19 +2,30 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { User } from '../components/User'
 import { Page } from '../components/Page'
-
-import './App.css'
+import { getPhotos } from '../actions/PageActions'
+import { handleLogin } from '../actions/UserActions'
 
 class App extends Component {
   render() {
-    const { user, page } = this.props
+    // вытащили handleLoginAction из this.props
+    const { user, page, getPhotosAction, handleLoginAction } = this.props
     return (
-      <div className="App">
-        <header className="App-header">
-          <h1 className="App-title">Мой топ фото</h1>
-        </header>
-        <User name={user.name} />
-        <Page photos={page.photos} year={page.year} />
+      <div className="app">
+        <Page
+          photos={page.photos}
+          year={page.year}
+          userId={user.id}
+          isFetching={page.isFetching}
+          getPhotos={getPhotosAction}
+        />
+        {/* добавили новые props для User */}
+        <User
+          name={user.name}
+          id={user.id}
+          isFetching={user.isFetching}
+          error={user.error}
+          handleLogin={handleLoginAction}
+        />
       </div>
     )
   }
@@ -22,9 +33,20 @@ class App extends Component {
 
 const mapStateToProps = store => {
   return {
-    user: store.user,
+    user: store.user, // вытащили из стора (из редьюсера user все в переменную thid.props.user)
     page: store.page,
   }
 }
 
-export default connect(mapStateToProps)(App)
+const mapDispatchToProps = dispatch => {
+  return {
+    getPhotosAction: (year, userId) => dispatch(getPhotos(year, userId)),
+    // "приклеили" в this.props.handleLoginAction функцию, которая умеет диспатчить handleLogin
+    handleLoginAction: () => dispatch(handleLogin()),
+  }
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App)
